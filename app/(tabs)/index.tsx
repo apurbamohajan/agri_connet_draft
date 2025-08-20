@@ -15,18 +15,19 @@ import { ProductCard } from '@/components/ProductCard';
 import { SearchBar } from '@/components/SearchBar';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Category, Product } from '@/types';
 
 const { width } = Dimensions.get('window');
 
 const mockCategories: Category[] = [
-  { id: '1', name: 'Vegetables', icon: 'leaf-outline', color: '#4CAF50', itemCount: '500+ items' },
-  { id: '2', name: 'Fruits', icon: 'nutrition', color: '#E91E63', itemCount: '300+ items' },
-  { id: '3', name: 'Grains', icon: 'nutrition-outline', color: '#FF9800', itemCount: '150+ items' },
-  { id: '4', name: 'Herbs', icon: 'flower-outline', color: '#8BC34A', itemCount: '80+ items' },
-  { id: '5', name: 'Dairy', icon: 'water-outline', color: '#2196F3', itemCount: '120+ items' },
-  { id: '6', name: 'Organic', icon: 'leaf', color: '#4CAF50', itemCount: '400+ items' },
+  { id: '1', name: 'Vegetables', icon: 'leaf-outline', itemCount: '500+ items', color: '#4CAF50' },
+  { id: '2', name: 'Fruits', icon: 'nutrition-outline', itemCount: '300+ items', color: '#FF9800' },
+  { id: '3', name: 'Grains', icon: 'restaurant-outline', itemCount: '150+ items', color: '#8D6E63' },
+  { id: '4', name: 'Herbs', icon: 'flower-outline', itemCount: '80+ items', color: '#4CAF50' },
+  { id: '5', name: 'Dairy', icon: 'water-outline', itemCount: '120+ items', color: '#2196F3' },
+  { id: '6', name: 'Organic', icon: 'leaf-outline', itemCount: '400+ items', color: '#4CAF50' },
 ];
 
 const mockProducts: Product[] = [
@@ -181,6 +182,7 @@ export default function HomeScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<Array<{ id: string; quantity: number }>>([]);
+  const { logout, user } = useAuth();
 
   const handleCategoryPress = (category: Category) => {
     Alert.alert('Category Selected', `You selected ${category.name}`);
@@ -253,19 +255,41 @@ export default function HomeScreen() {
             <Ionicons name="leaf" size={28} color="#4CAF50" />
             <ThemedText style={styles.logoText}>AgriConnect</ThemedText>
           </View>
-          <TouchableOpacity style={styles.cartButton}>
+          <TouchableOpacity style={styles.cartButton} onPress={() => logout()}>
             <View style={styles.cartIconContainer}>
-              <Ionicons name="cart-outline" size={24} color="#4CAF50" />
-              {getCartItemCount() > 0 && (
-                <View style={styles.cartBadge}>
-                  <ThemedText style={styles.cartBadgeText}>
-                    {getCartItemCount() > 99 ? '99+' : getCartItemCount()}
-                  </ThemedText>
-                </View>
-              )}
+              <Ionicons name="log-out-outline" size={24} color="#4CAF50" />
             </View>
           </TouchableOpacity>
         </View>
+
+        {/* Debug Info */}
+        <View style={styles.debugSection}>
+          <ThemedText style={styles.debugText}>
+            User: {user ? `${user.name} (${user.role})` : 'Not logged in'}
+          </ThemedText>
+          <ThemedText style={styles.debugText}>
+            UID: {user?.uid || 'None'}
+          </ThemedText>
+        </View>
+
+        {/* Welcome Message */}
+        {user && (
+          <View style={styles.welcomeSection}>
+            <ThemedText style={styles.welcomeText}>
+              Welcome back, {user.name}! 👋
+            </ThemedText>
+            <View style={styles.roleBadge}>
+              <Ionicons 
+                name={user.role === 'farmer' ? 'leaf-outline' : 'cart-outline'} 
+                size={16} 
+                color="#4CAF50" 
+              />
+              <ThemedText style={styles.roleText}>
+                {user.role === 'farmer' ? 'Farmer' : 'Buyer'}
+              </ThemedText>
+            </View>
+          </View>
+        )}
 
         {/* Search Bar */}
         <View style={styles.searchSection}>
@@ -326,6 +350,82 @@ export default function HomeScreen() {
             <ThemedText style={styles.recentOrderDate}>Delivered on Dec 15, 2024</ThemedText>
           </View>
         </View>
+
+        {/* Why Choose AgriConnect Section */}
+        <View style={styles.whyChooseSection}>
+          <ThemedText style={styles.whyChooseTitle}>Why Choose AgriConnect?</ThemedText>
+          <View style={styles.featuresContainer}>
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Ionicons name="leaf-outline" size={24} color="#4CAF50" />
+              </View>
+              <ThemedText style={styles.featureTitle}>Fresh & Organic</ThemedText>
+              <ThemedText style={styles.featureDescription}>
+                Get the freshest produce directly from local farms, ensuring quality and nutritional value.
+              </ThemedText>
+            </View>
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Ionicons name="people-outline" size={24} color="#2196F3" />
+              </View>
+              <ThemedText style={styles.featureTitle}>Support Local Farmers</ThemedText>
+              <ThemedText style={styles.featureDescription}>
+                Connect directly with farmers in your area and support sustainable agriculture practices.
+              </ThemedText>
+            </View>
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Ionicons name="car-outline" size={24} color="#FF9800" />
+              </View>
+              <ThemedText style={styles.featureTitle}>Fast Delivery</ThemedText>
+              <ThemedText style={styles.featureDescription}>
+                Enjoy quick and reliable delivery service that brings farm-fresh products to your door.
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.footerContent}>
+            <View style={styles.footerLeft}>
+              <View style={styles.footerLogo}>
+                <Ionicons name="leaf" size={24} color="#4CAF50" />
+                <ThemedText style={styles.footerLogoText}>AgriConnect</ThemedText>
+              </View>
+              <ThemedText style={styles.footerTagline}>
+                Connecting farmers and buyers{'\n'}for a sustainable future in{'\n'}agriculture.
+              </ThemedText>
+            </View>
+            <View style={styles.footerLinks}>
+              <View style={styles.footerColumn}>
+                <ThemedText style={styles.footerColumnTitle}>For Buyers</ThemedText>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Browse Products</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>How to Order</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Delivery Info</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Customer Support</ThemedText></TouchableOpacity>
+              </View>
+              <View style={styles.footerColumn}>
+                <ThemedText style={styles.footerColumnTitle}>For Farmers</ThemedText>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Sell Your Products</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Farmer Dashboard</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Pricing Guide</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Success Stories</ThemedText></TouchableOpacity>
+              </View>
+              <View style={styles.footerColumn}>
+                <ThemedText style={styles.footerColumnTitle}>Company</ThemedText>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>About Us</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Contact</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Privacy Policy</ThemedText></TouchableOpacity>
+                <TouchableOpacity><ThemedText style={styles.footerLink}>Terms of Service</ThemedText></TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View style={styles.footerDivider} />
+          <View style={styles.footerCopyright}>
+            <ThemedText style={styles.copyrightText}>© 2024 AgriConnect. All rights reserved.</ThemedText>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -344,6 +444,34 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+  },
+  welcomeSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#F8F9FA',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  roleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginLeft: 6,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -493,5 +621,132 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.7,
     color: '#999',
+  },
+  whyChooseSection: {
+    backgroundColor: '#F0F8F0',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  whyChooseTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+  },
+  featureCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    width: (width - 60) / 3,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  featureIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F0F8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  featureDescription: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  footer: {
+    backgroundColor: '#1a1a1a',
+    paddingTop: 40,
+  },
+  footerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+  footerLeft: {
+    flex: 1,
+    marginRight: 40,
+  },
+  footerLogo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  footerLogoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 8,
+  },
+  footerTagline: {
+    fontSize: 14,
+    color: '#999',
+    lineHeight: 20,
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    flex: 2,
+  },
+  footerColumn: {
+    flex: 1,
+    marginLeft: 20,
+  },
+  footerColumnTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 12,
+  },
+  footerLink: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 8,
+  },
+  footerDivider: {
+    height: 1,
+    backgroundColor: '#333',
+    marginHorizontal: 20,
+  },
+  footerCopyright: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  copyrightText: {
+    fontSize: 12,
+    color: '#999',
+  },
+  debugSection: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    marginHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
   },
 });

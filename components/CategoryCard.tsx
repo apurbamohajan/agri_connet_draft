@@ -72,11 +72,15 @@ export function CategoryCard({
       <View
         style={[
           styles.categoryIcon,
-          { backgroundColor: color },
+          { backgroundColor: color || '#4CAF50' },
           { width: sizeStyles.iconContainerSize, height: sizeStyles.iconContainerSize },
         ]}
       >
-        <Ionicons name={icon} size={sizeStyles.iconSize} color="white" />
+        <Ionicons 
+          name={icon as any} 
+          size={sizeStyles.iconSize} 
+          color="white" 
+        />
       </View>
       <ThemedText style={[styles.categoryName, { fontSize: sizeStyles.fontSize }]}>
         {name}

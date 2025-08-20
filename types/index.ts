@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 
 export interface Product {
   id: string;
@@ -18,41 +17,39 @@ export interface Product {
 export interface Category {
   id: string;
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
+  icon: string;
   itemCount?: string;
+  color?: string;
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'buyer' | 'farmer';
-  avatar?: string;
+  role: UserRole;
   phone?: string;
   address?: string;
+  profileImage?: string;
 }
+
+export type UserRole = 'farmer' | 'buyer';
 
 export interface Order {
   id: string;
   userId: string;
-  products: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-  }>;
-  totalAmount: number;
+  products: CartItem[];
+  total: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
-  createdAt: Date;
-  updatedAt: Date;
-  deliveryAddress?: string;
-  farmerId?: string;
+  orderDate: Date;
+  deliveryAddress: string;
+  paymentMethod: string;
 }
 
 export interface CartItem {
+  id: string;
   productId: string;
   quantity: number;
-  product: Product;
+  price: number;
 }
 
 export interface Message {
