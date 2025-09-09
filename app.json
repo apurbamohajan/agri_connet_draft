@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
+      "package": "com.yourname.agriconnectapp",  
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
@@ -39,4 +39,4 @@
       "typedRoutes": true
     }
   }
-}
+

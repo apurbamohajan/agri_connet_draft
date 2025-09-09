@@ -2,15 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -62,7 +62,7 @@ export default function LoginScreen() {
           console.log('Navigating to home after login...');
           setShowSuccessModal(false);
           // Use push instead of replace to ensure navigation works
-          router.push('/(tabs)');
+          router.replace('/(tabs)');
         }, 2000);
       } else {
         console.log('Attempting sign up...');

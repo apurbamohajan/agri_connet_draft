@@ -9,29 +9,24 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (loading) {
-      console.log('AuthWrapper: Still loading...');
-      return;
-    }
+    if (loading) return; // Wait for auth state loading to finish
 
-    const inAuthGroup = segments[0] === '(tabs)';
+    const inTabsGroup = segments[0] === '(tabs)';
     const onLoginPage = segments[0] === 'login';
 
-    console.log('AuthWrapper: User state changed', { user: !!user, inAuthGroup, onLoginPage, segments });
+    console.log('AuthWrapper:', { user: !!user, inTabsGroup, onLoginPage, segments });
 
-    if (!user && inAuthGroup) {
-      console.log('AuthWrapper: Redirecting to login (not authenticated)');
-      // Redirect to login if user is not authenticated and trying to access protected routes
+    if (!user && inTabsGroup) {
+      // Not logged in, but trying to access tabs → send to login
       router.replace('/login');
     } else if (user && onLoginPage) {
-      console.log('AuthWrapper: User authenticated on login page, letting login screen handle navigation');
-      // Only redirect if user is on login page, let the login screen handle its own navigation
-      // This prevents conflicts with the success modal
-      return;
+      // Logged in but still on login page → send to home
+      router.replace('/(tabs)');
     }
-  }, [user, loading, segments]);
+  }, [user, loading, segments, router]);
 
   if (loading) {
+    // Show loading spinner while auth state initializes
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#4CAF50" />
@@ -39,5 +34,6 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Auth state loaded, render child content
   return <>{children}</>;
-} 
+}

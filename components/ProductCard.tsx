@@ -1,12 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types';
 import { ThemedText } from './ThemedText';
+
+const { width } = Dimensions.get('window');
 
 interface ProductCardProps extends Product {
   onPress: (product: Product) => void;
@@ -33,8 +37,28 @@ export function ProductCard({
 }: ProductCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { translations, getProductName } = useLanguage();
 
   const handlePress = () => {
+    // Pass all product data as URL parameters for the product details page
+    const params = {
+      id,
+      name,
+      price: price.toString(),
+      image,
+      category,
+      farmer,
+      rating: rating.toString(),
+      description: description || 'Fresh and high-quality agricultural product sourced directly from local farmers.',
+      unit: unit || 'per item',
+      location: location || 'Local Farm',
+      badge: badge || ''
+    };
+    
+    router.push({
+      pathname: `/product/${id}`,
+      params
+    });
     onPress({ id, name, price, image, category, farmer, rating, description, quantity, unit, location, badge });
   };
 
@@ -56,7 +80,7 @@ export function ProductCard({
           source={{ uri: image }}
           style={styles.productImage}
           contentFit="cover"
-          placeholder="https://via.placeholder.com/160x120?text=Loading..."
+          placeholder="https://via.placeholder.com/180x140?text=Loading..."
         />
         {badge && (
           <View style={styles.badgeContainer}>
@@ -66,7 +90,7 @@ export function ProductCard({
       </View>
       <View style={styles.productInfo}>
         <ThemedText style={styles.productName} numberOfLines={1}>
-          {name}
+          {getProductName(name)}
         </ThemedText>
         <ThemedText style={styles.productFarmer} numberOfLines={1}>
           {farmer}
@@ -78,7 +102,7 @@ export function ProductCard({
         )}
         <View style={styles.productFooter}>
           <View style={styles.priceContainer}>
-            <ThemedText style={styles.productPrice}>${price.toFixed(2)}</ThemedText>
+            <ThemedText style={styles.productPrice}>{translations.currency}{price.toLocaleString()}</ThemedText>
             {unit && <ThemedText style={styles.productUnit}> {unit}</ThemedText>}
           </View>
           <View style={styles.ratingContainer}>
@@ -92,7 +116,7 @@ export function ProductCard({
             onPress={handleAddToCart}
           >
             <Ionicons name="add" size={16} color="white" />
-            <ThemedText style={styles.addToCartText}>Add to Cart</ThemedText>
+            <ThemedText style={styles.addToCartText}>{translations.addToCart}</ThemedText>
           </TouchableOpacity>
         )}
       </View>
@@ -102,8 +126,9 @@ export function ProductCard({
 
 const styles = StyleSheet.create({
   productCard: {
-    width: 160,
-    marginRight: 16,
+    width: (width - 56) / 2, // Two cards per row with margins
+    marginHorizontal: 8,
+    marginBottom: 16,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -117,7 +142,7 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 120,
+    height: 140,
   },
   badgeContainer: {
     position: 'absolute',
@@ -194,4 +219,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 4,
   },
-}); 
+});

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -27,6 +28,10 @@ export function CategoryCard({
   const colors = Colors[colorScheme ?? 'light'];
 
   const handlePress = () => {
+    // Navigate to category page with the category name
+    router.push(`/category/${encodeURIComponent(name)}`);
+    
+    // Still call the original onPress handler if needed
     onPress({ id, name, icon, color, itemCount });
   };
 

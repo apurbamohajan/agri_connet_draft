@@ -16,6 +16,8 @@ import { SearchBar } from '@/components/SearchBar';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Category, Product } from '@/types';
 
@@ -30,149 +32,170 @@ const mockCategories: Category[] = [
   { id: '6', name: 'Organic', icon: 'leaf-outline', itemCount: '400+ items', color: '#4CAF50' },
 ];
 
+// Function to get translated category name
+const getTranslatedCategoryName = (categoryName: string, translations: any, language: string) => {
+  switch (categoryName.toLowerCase()) {
+    case 'vegetables': return translations.vegetables;
+    case 'fruits': return translations.fruits;
+    case 'grains': return translations.grains;
+    case 'herbs': return translations.herbs;
+    case 'dairy': return translations.dairy;
+    case 'organic': return translations.organic;
+    default: return categoryName;
+  }
+};
+
+// Function to get translated item count
+const getTranslatedItemCount = (itemCount: string, language: string) => {
+  if (language === 'bn') {
+    return itemCount.replace('items', 'আইটেম').replace('+', '+');
+  }
+  return itemCount;
+};
+
 const mockProducts: Product[] = [
   {
     id: '1',
     name: 'Fresh Organic Tomatoes',
-    price: 4.99,
+    price: 550, // ৳550 per kg (was $4.99)
     image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400',
     category: 'Vegetables',
-    farmer: 'Green Valley Farm',
+    farmer: 'সবুজ উপত্যকা খামার', // Green Valley Farm in Bangla
     rating: 4.5,
     unit: 'per kg',
-    location: 'California',
+    location: 'সিলেট',
     badge: 'Organic',
   },
   {
     id: '2',
     name: 'Sweet Corn',
-    price: 3.5,
+    price: 385, // ৳385 per dozen (was $3.50)
     image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400',
     category: 'Vegetables',
-    farmer: 'Sunny Acres',
+    farmer: 'রৌদ্রোজ্জ্বল খামার', // Sunny Acres in Bangla
     rating: 4.8,
     unit: 'per dozen',
-    location: 'Iowa',
+    location: 'রংপুর',
     badge: 'Fresh',
   },
   {
     id: '3',
     name: 'Mixed Leafy Greens',
-    price: 6.99,
+    price: 770, // ৳770 per bundle (was $6.99)
     image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
     category: 'Vegetables',
-    farmer: 'Organic Harvest Co.',
+    farmer: 'জৈব ফসল কোম্পানি', // Organic Harvest Co. in Bangla
     rating: 4.6,
     unit: 'per bundle',
-    location: 'Oregon',
+    location: 'ময়মনসিংহ',
     badge: 'Organic',
   },
   {
     id: '4',
     name: 'Farm Fresh Carrots',
-    price: 2.99,
+    price: 330, // ৳330 per kg (was $2.99)
     image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400',
     category: 'Vegetables',
-    farmer: 'Heritage Farm',
+    farmer: 'ঐতিহ্য খামার', // Heritage Farm in Bangla
     rating: 4.4,
     unit: 'per kg',
-    location: 'Vermont',
+    location: 'দিনাজপুর',
     badge: 'Local',
   },
   {
     id: '5',
     name: 'Fresh Strawberries',
-    price: 8.99,
+    price: 990, // ৳990 per box (was $8.99)
     image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400',
     category: 'Fruits',
-    farmer: 'Berry Bliss Farm',
+    farmer: 'বেরি আনন্দ খামার', // Berry Bliss Farm in Bangla
     rating: 4.9,
     unit: 'per box',
-    location: 'Florida',
+    location: 'চট্টগ্রাম',
     badge: 'Premium',
   },
   {
     id: '6',
     name: 'Organic Bell Peppers',
-    price: 5.49,
+    price: 605, // ৳605 per kg (was $5.49)
     image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400',
     category: 'Vegetables',
-    farmer: 'Colorful Harvest',
+    farmer: 'রঙিন ফসল খামার', // Colorful Harvest in Bangla
     rating: 4.7,
     unit: 'per kg',
-    location: 'Texas',
+    location: 'বরিশাল',
     badge: 'Organic',
   },
   {
     id: '7',
     name: 'Fresh Avocados',
-    price: 7.99,
+    price: 880, // ৳880 per kg (was $7.99)
     image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400',
     category: 'Fruits',
-    farmer: 'Tropical Grove',
+    farmer: 'ক্রান্তীয় বাগান', // Tropical Grove in Bangla
     rating: 4.6,
     unit: 'per kg',
-    location: 'California',
+    location: 'স্যাধেট',
     badge: 'Fresh',
   },
   {
     id: '8',
     name: 'Organic Broccoli',
-    price: 4.49,
+    price: 495, // ৳495 per kg (was $4.49)
     image: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=400',
     category: 'Vegetables',
-    farmer: 'Green Fields Co.',
+    farmer: 'সবুজ ক্ষেত কোম্পানি', // Green Fields Co. in Bangla
     rating: 4.5,
     unit: 'per kg',
-    location: 'Washington',
+    location: 'গাজীপুর',
     badge: 'Organic',
   },
   {
     id: '9',
     name: 'Fresh Blueberries',
-    price: 9.99,
+    price: 1100, // ৳1100 per box (was $9.99)
     image: 'https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=400',
     category: 'Fruits',
-    farmer: 'Blueberry Hill',
+    farmer: 'নীল বেরি পাহাড়', // Blueberry Hill in Bangla
     rating: 4.8,
     unit: 'per box',
-    location: 'Maine',
+    location: 'রানীশংকৈল',
     badge: 'Premium',
   },
   {
     id: '10',
     name: 'Organic Spinach',
-    price: 3.99,
+    price: 440, // ৳440 per bundle (was $3.99)
     image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400',
     category: 'Vegetables',
-    farmer: 'Leafy Greens Farm',
+    farmer: 'পাতা শাক খামার', // Leafy Greens Farm in Bangla
     rating: 4.4,
     unit: 'per bundle',
-    location: 'Arizona',
+    location: 'কুমিল্লা',
     badge: 'Organic',
   },
   {
     id: '11',
     name: 'Fresh Pineapples',
-    price: 6.49,
+    price: 715, // ৳715 per piece (was $6.49)
     image: 'https://images.unsplash.com/photo-1550258987-190a62d4fa70?w=400',
     category: 'Fruits',
-    farmer: 'Tropical Paradise',
+    farmer: 'ক্রান্তীয় স্বর্গ', // Tropical Paradise in Bangla
     rating: 4.7,
     unit: 'per piece',
-    location: 'Hawaii',
+    location: 'খুলনা',
     badge: 'Fresh',
   },
   {
     id: '12',
     name: 'Organic Cucumbers',
-    price: 3.29,
+    price: 365, // ৳365 per kg (was $3.29)
     image: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400',
     category: 'Vegetables',
-    farmer: 'Crisp Valley Farm',
+    farmer: 'সতেজ উপত্যকা খামার', // Crisp Valley Farm in Bangla
     rating: 4.3,
     unit: 'per kg',
-    location: 'Georgia',
+    location: 'যশোর',
     badge: 'Organic',
   },
 ];
@@ -181,11 +204,13 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartItems, setCartItems] = useState<Array<{ id: string; quantity: number }>>([]);
   const { logout, user } = useAuth();
+  const { language, toggleLanguage, translations } = useLanguage();
+  const { addToCart, getCartItemCount } = useCart();
 
   const handleCategoryPress = (category: Category) => {
-    Alert.alert('Category Selected', `You selected ${category.name}`);
+    // Navigation is now handled by the CategoryCard component
+    console.log('Category selected:', category.name);
   };
 
   const handleProductPress = (product: Product) => {
@@ -193,36 +218,31 @@ export default function HomeScreen() {
   };
 
   const handleQuickAction = (action: string) => {
-    Alert.alert('Quick Action', `You selected: ${action}`);
+    switch (action) {
+      case 'View cart':
+        router.push('/cart');
+        break;
+      default:
+        Alert.alert('Quick Action', `You selected: ${action}`);
+        break;
+    }
   };
 
-  const addToCart = (product: Product) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prevItems, { id: product.id, quantity: 1 }];
-      }
-    });
-    Alert.alert('Added to Cart', `${product.name} added to cart!`);
+  const renderCategoryItem = (category: Category) => {
+    const translatedCategory = {
+      ...category,
+      name: getTranslatedCategoryName(category.name, translations, language),
+      itemCount: getTranslatedItemCount(category.itemCount || '', language)
+    };
+    
+    return (
+      <CategoryCard
+        key={category.id}
+        {...translatedCategory}
+        onPress={handleCategoryPress}
+      />
+    );
   };
-
-  const getCartItemCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const renderCategoryItem = (category: Category) => (
-    <CategoryCard
-      key={category.id}
-      {...category}
-      onPress={handleCategoryPress}
-    />
-  );
 
   const renderProductItem = (product: Product) => (
     <ProductCard
@@ -246,6 +266,28 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+  const renderCartQuickAction = () => {
+    const cartCount = getCartItemCount();
+    return (
+      <TouchableOpacity
+        style={[styles.quickAction, { backgroundColor: colors.background }]}
+        onPress={() => handleQuickAction('View cart')}
+      >
+        <View style={[styles.quickActionIcon, { backgroundColor: '#4CAF50' }]}>
+          <Ionicons name="cart-outline" size={24} color="white" />
+          {cartCount > 0 && (
+            <View style={styles.cartBadge}>
+              <ThemedText style={styles.cartBadgeText}>
+                {cartCount > 99 ? '99+' : cartCount.toString()}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+        <ThemedText style={styles.quickActionText}>{translations.myCart}</ThemedText>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#F8F9FA' }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -255,11 +297,22 @@ export default function HomeScreen() {
             <Ionicons name="leaf" size={28} color="#4CAF50" />
             <ThemedText style={styles.logoText}>AgriConnect</ThemedText>
           </View>
-          <TouchableOpacity style={styles.cartButton} onPress={() => logout()}>
-            <View style={styles.cartIconContainer}>
-              <Ionicons name="log-out-outline" size={24} color="#4CAF50" />
-            </View>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            {/* Language Toggle Button */}
+            <TouchableOpacity style={styles.languageButton} onPress={toggleLanguage}>
+              <View style={styles.languageIconContainer}>
+                <Ionicons name="language-outline" size={20} color="#4CAF50" />
+                <ThemedText style={styles.languageText}>{language === 'en' ? 'বাং' : 'EN'}</ThemedText>
+              </View>
+            </TouchableOpacity>
+            
+            {/* Logout Button */}
+            <TouchableOpacity style={styles.cartButton} onPress={() => logout()}>
+              <View style={styles.cartIconContainer}>
+                <Ionicons name="log-out-outline" size={24} color="#4CAF50" />
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Debug Info */}
@@ -276,7 +329,7 @@ export default function HomeScreen() {
         {user && (
           <View style={styles.welcomeSection}>
             <ThemedText style={styles.welcomeText}>
-              Welcome back, {user.name}! 👋
+              {translations.welcomeBack}, {user.name}! 👋
             </ThemedText>
             <View style={styles.roleBadge}>
               <Ionicons 
@@ -285,7 +338,7 @@ export default function HomeScreen() {
                 color="#4CAF50" 
               />
               <ThemedText style={styles.roleText}>
-                {user.role === 'farmer' ? 'Farmer' : 'Buyer'}
+                {user.role === 'farmer' ? (language === 'en' ? 'Farmer' : 'কৃষক') : (language === 'en' ? 'Buyer' : 'ক্রেতা')}
               </ThemedText>
             </View>
           </View>
@@ -296,16 +349,16 @@ export default function HomeScreen() {
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search for fresh produce..."
+            placeholder={translations.searchPlaceholder}
             onSearch={(query) => {
-              Alert.alert('Search', `Searching for: ${query}`);
+              Alert.alert(translations.search, `${language === 'en' ? 'Searching for' : 'খুঁজছেন'}: ${query}`);
             }}
           />
         </View>
 
         {/* Categories */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Shop by Category</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{translations.shopByCategory}</ThemedText>
           <View style={styles.categoriesContainer}>
             {mockCategories.map(renderCategoryItem)}
           </View>
@@ -313,73 +366,73 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Quick Actions</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{translations.quickActions}</ThemedText>
           <View style={styles.quickActionsContainer}>
-            {renderQuickAction('add-circle-outline', 'Add Product', 'Add new product')}
-            {renderQuickAction('cart-outline', 'My Cart', 'View cart')}
-            {renderQuickAction('list-outline', 'My Orders', 'View orders')}
-            {renderQuickAction('chatbubbles-outline', 'Messages', 'View messages')}
+            {renderQuickAction('add-circle-outline', translations.addProduct, 'Add new product')}
+            {renderCartQuickAction()}
+            {renderQuickAction('list-outline', translations.myOrders, 'View orders')}
+            {renderQuickAction('chatbubbles-outline', translations.messages, 'View messages')}
           </View>
         </View>
 
         {/* Featured Products */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>Featured Products</ThemedText>
+            <ThemedText style={styles.sectionTitle}>{translations.featuredProducts}</ThemedText>
             <TouchableOpacity style={styles.viewAllButton}>
-              <ThemedText style={styles.viewAllText}>View All Products</ThemedText>
+              <ThemedText style={styles.viewAllText}>{translations.viewAllProducts}</ThemedText>
             </TouchableOpacity>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsContainer}>
+          <View style={styles.productsGrid}>
             {mockProducts.map(renderProductItem)}
-          </ScrollView>
+          </View>
         </View>
 
         {/* Recent Orders */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Recent Orders</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{translations.recentOrders}</ThemedText>
           <View style={[styles.recentOrderCard, { backgroundColor: colors.background }]}>
             <View style={styles.recentOrderHeader}>
               <Ionicons name="time-outline" size={20} color={colors.icon} />
               <ThemedText style={styles.recentOrderTitle}>Order #12345</ThemedText>
               <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>
-                <ThemedText style={styles.statusText}>Delivered</ThemedText>
+                <ThemedText style={styles.statusText}>{translations.delivered}</ThemedText>
               </View>
             </View>
             <ThemedText style={styles.recentOrderItems}>Fresh Tomatoes, Organic Rice</ThemedText>
-            <ThemedText style={styles.recentOrderDate}>Delivered on Dec 15, 2024</ThemedText>
+            <ThemedText style={styles.recentOrderDate}>{language === 'en' ? 'Delivered on Dec 15, 2024' : '১৫ ডিসেম্বর, ২০২৪ এ পৌছে দেওয়া হয়েছে'}</ThemedText>
           </View>
         </View>
 
         {/* Why Choose AgriConnect Section */}
         <View style={styles.whyChooseSection}>
-          <ThemedText style={styles.whyChooseTitle}>Why Choose AgriConnect?</ThemedText>
+          <ThemedText style={styles.whyChooseTitle}>{translations.whyChooseAgriConnect}</ThemedText>
           <View style={styles.featuresContainer}>
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
-                <Ionicons name="leaf-outline" size={24} color="#4CAF50" />
+                <Ionicons name="leaf-outline" size={32} color="#4CAF50" />
               </View>
-              <ThemedText style={styles.featureTitle}>Fresh & Organic</ThemedText>
+              <ThemedText style={styles.featureTitle}>{translations.freshOrganic}</ThemedText>
               <ThemedText style={styles.featureDescription}>
-                Get the freshest produce directly from local farms, ensuring quality and nutritional value.
+                {translations.freshOrganicDesc}
               </ThemedText>
             </View>
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
-                <Ionicons name="people-outline" size={24} color="#2196F3" />
+                <Ionicons name="people-outline" size={32} color="#2196F3" />
               </View>
-              <ThemedText style={styles.featureTitle}>Support Local Farmers</ThemedText>
+              <ThemedText style={styles.featureTitle}>{translations.supportLocalFarmers}</ThemedText>
               <ThemedText style={styles.featureDescription}>
-                Connect directly with farmers in your area and support sustainable agriculture practices.
+                {translations.supportLocalFarmersDesc}
               </ThemedText>
             </View>
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
-                <Ionicons name="car-outline" size={24} color="#FF9800" />
+                <Ionicons name="car-outline" size={32} color="#FF9800" />
               </View>
-              <ThemedText style={styles.featureTitle}>Fast Delivery</ThemedText>
+              <ThemedText style={styles.featureTitle}>{translations.fastDelivery}</ThemedText>
               <ThemedText style={styles.featureDescription}>
-                Enjoy quick and reliable delivery service that brings farm-fresh products to your door.
+                {translations.fastDeliveryDesc}
               </ThemedText>
             </View>
           </View>
@@ -387,40 +440,84 @@ export default function HomeScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.footerContent}>
-            <View style={styles.footerLeft}>
-              <View style={styles.footerLogo}>
-                <Ionicons name="leaf" size={24} color="#4CAF50" />
-                <ThemedText style={styles.footerLogoText}>AgriConnect</ThemedText>
-              </View>
-              <ThemedText style={styles.footerTagline}>
-                Connecting farmers and buyers{'\n'}for a sustainable future in{'\n'}agriculture.
-              </ThemedText>
+          {/* Logo and Tagline Section */}
+          <View style={styles.footerLogoSection}>
+            <View style={styles.footerLogo}>
+              <Ionicons name="leaf" size={28} color="#4CAF50" />
+              <ThemedText style={styles.footerLogoText}>AgriConnect</ThemedText>
             </View>
-            <View style={styles.footerLinks}>
-              <View style={styles.footerColumn}>
-                <ThemedText style={styles.footerColumnTitle}>For Buyers</ThemedText>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Browse Products</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>How to Order</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Delivery Info</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Customer Support</ThemedText></TouchableOpacity>
+            <ThemedText style={styles.footerTagline}>
+              Connecting farmers and buyers for a sustainable future in agriculture.
+            </ThemedText>
+          </View>
+
+          {/* Links Section - Stacked vertically for mobile */}
+          <View style={styles.footerLinksContainer}>
+            {/* For Buyers */}
+            <View style={styles.footerLinkSection}>
+              <ThemedText style={styles.footerColumnTitle}>For Buyers</ThemedText>
+              <View style={styles.footerLinksRow}>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Browse Products</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>How to Order</ThemedText>
+                </TouchableOpacity>
               </View>
-              <View style={styles.footerColumn}>
-                <ThemedText style={styles.footerColumnTitle}>For Farmers</ThemedText>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Sell Your Products</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Farmer Dashboard</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Pricing Guide</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Success Stories</ThemedText></TouchableOpacity>
+              <View style={styles.footerLinksRow}>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Delivery Info</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Customer Support</ThemedText>
+                </TouchableOpacity>
               </View>
-              <View style={styles.footerColumn}>
-                <ThemedText style={styles.footerColumnTitle}>Company</ThemedText>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>About Us</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Contact</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Privacy Policy</ThemedText></TouchableOpacity>
-                <TouchableOpacity><ThemedText style={styles.footerLink}>Terms of Service</ThemedText></TouchableOpacity>
+            </View>
+
+            {/* For Farmers */}
+            <View style={styles.footerLinkSection}>
+              <ThemedText style={styles.footerColumnTitle}>For Farmers</ThemedText>
+              <View style={styles.footerLinksRow}>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Sell Your Products</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Farmer Dashboard</ThemedText>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.footerLinksRow}>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Pricing Guide</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Success Stories</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Company */}
+            <View style={styles.footerLinkSection}>
+              <ThemedText style={styles.footerColumnTitle}>Company</ThemedText>
+              <View style={styles.footerLinksRow}>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>About Us</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Contact</ThemedText>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.footerLinksRow}>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Privacy Policy</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerLinkItem}>
+                  <ThemedText style={styles.footerLink}>Terms of Service</ThemedText>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
+
+          {/* Copyright Section */}
           <View style={styles.footerDivider} />
           <View style={styles.footerCopyright}>
             <ThemedText style={styles.copyrightText}>© 2024 AgriConnect. All rights reserved.</ThemedText>
@@ -485,6 +582,27 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     padding: 8,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageButton: {
+    marginRight: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  languageIconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginLeft: 4,
   },
   cartIconContainer: {
     position: 'relative',
@@ -577,9 +695,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
+  cartBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#F44336',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  cartBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
   productsContainer: {
     marginLeft: -20,
     paddingLeft: 20,
+  },
+  productsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginHorizontal: -8,
   },
   recentOrderCard: {
     padding: 16,
@@ -624,70 +767,66 @@ const styles = StyleSheet.create({
   },
   whyChooseSection: {
     backgroundColor: '#F0F8F0',
-    paddingVertical: 40,
+    paddingVertical: 48,
     paddingHorizontal: 20,
     marginTop: 20,
   },
   whyChooseTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
+    lineHeight: 32,
   },
   featuresContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   featureCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    width: (width - 60) / 3,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 320,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
   featureIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F0F8F0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   featureTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   featureDescription: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 20,
   },
   footer: {
     backgroundColor: '#1a1a1a',
-    paddingTop: 40,
-  },
-  footerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingTop: 32,
     paddingHorizontal: 20,
-    paddingBottom: 30,
   },
-  footerLeft: {
-    flex: 1,
-    marginRight: 40,
+  footerLogoSection: {
+    alignItems: 'center',
+    marginBottom: 32,
   },
   footerLogo: {
     flexDirection: 'row',
@@ -695,34 +834,45 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   footerLogoText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-    marginLeft: 8,
+    marginLeft: 10,
   },
   footerTagline: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#999',
-    lineHeight: 20,
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 280,
   },
-  footerLinks: {
-    flexDirection: 'row',
-    flex: 2,
+  footerLinksContainer: {
+    marginBottom: 24,
   },
-  footerColumn: {
-    flex: 1,
-    marginLeft: 20,
+  footerLinkSection: {
+    marginBottom: 24,
   },
   footerColumnTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 12,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  footerLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  footerLinkItem: {
+    flex: 1,
+    paddingHorizontal: 8,
   },
   footerLink: {
     fontSize: 14,
-    color: '#999',
-    marginBottom: 8,
+    color: '#ccc',
+    textAlign: 'center',
+    paddingVertical: 8,
   },
   footerDivider: {
     height: 1,
