@@ -62,43 +62,50 @@ npm run web      # Web
 
 ## 👥 Team Collaboration
 
-### Team Structure
-This project is developed by a 3-member team with distributed responsibilities:
+### 🌳 Multi-Branch Development Strategy
+This project uses a specialized multi-branch strategy designed for efficient 3-member team collaboration.
 
-#### Team Member Responsibilities
+**📖 Complete Setup Guide**: See [`MULTI_BRANCH_STRATEGY.md`](./MULTI_BRANCH_STRATEGY.md) for detailed instructions.
 
-**Frontend Developer (Member 1)**
-- UI/UX Implementation
-- Component Development
-- Theme and Styling
-- Responsive Design
+#### Team Structure & Branches
+- **🎨 Member 1 (UI/UX)**: `feature/ui-components` - Frontend development
+- **🔧 Member 2 (Backend)**: `feature/backend-integration` - Firebase & API integration  
+- **⚙️ Member 3 (Features)**: `feature/core-functionality` - Application logic
 
-**Backend & Integration Developer (Member 2)**
-- Firebase Configuration
-- API Integration
-- Authentication System
-- Database Design
+#### Quick Start for Team Members
+```bash
+# Clone and setup
+git clone https://github.com/apurbamohajan/agri_connet_draft.git
+cd agri_connet_draft
+npm install
 
-**Feature Developer (Member 3)**
-- Core Features Implementation
-- Cart & Order Management
-- Search Functionality
-- Testing & Quality Assurance
+# Switch to your assigned branch
+git checkout feature/ui-components        # Member 1
+git checkout feature/backend-integration  # Member 2  
+git checkout feature/core-functionality   # Member 3
+
+# Read your guidelines
+# Member 1: MEMBER1_UI_GUIDELINES.md
+# Member 2: MEMBER2_BACKEND_GUIDELINES.md
+# Member 3: MEMBER3_FEATURES_GUIDELINES.md
+```
 
 ### Git Workflow
 
 #### Branch Structure
 - `main` - Production-ready code
-- `develop` - Integration branch for features
-- `feature/*` - Feature development branches
-- `bugfix/*` - Bug fix branches
+- `develop` - Integration branch for all features
+- `feature/ui-components` - Frontend UI/UX development
+- `feature/backend-integration` - Backend & Firebase integration
+- `feature/core-functionality` - Core application features
 
 #### Development Process
-1. Create feature branch from `develop`
-2. Develop and test your feature
-3. Create pull request to `develop`
-4. Code review and merge
-5. Periodic merge from `develop` to `main`
+1. Work on your assigned feature branch
+2. Regularly pull from `develop` to stay updated
+3. Create pull requests from your feature branch to `develop`
+4. Code review and team approval
+5. Merge to `develop` for integration testing
+6. Periodic releases from `develop` to `main`
 
 ## 📁 Project Structure
 
