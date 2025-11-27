@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Alert,
   Dimensions,
@@ -7,8 +7,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { CategoryCard } from '@/components/CategoryCard';
 import { ProductCard } from '@/components/ProductCard';
@@ -20,6 +22,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Category, Product } from '@/types';
+import { productService } from '@/services/firebase';
 
 const { width } = Dimensions.get('window');
 
@@ -53,160 +56,62 @@ const getTranslatedItemCount = (itemCount: string, language: string) => {
   return itemCount;
 };
 
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Fresh Organic Tomatoes',
-    price: 550, // ৳550 per kg (was $4.99)
-    image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400',
-    category: 'Vegetables',
-    farmer: 'সবুজ উপত্যকা খামার', // Green Valley Farm in Bangla
-    rating: 4.5,
-    unit: 'per kg',
-    location: 'সিলেট',
-    badge: 'Organic',
-  },
-  {
-    id: '2',
-    name: 'Sweet Corn',
-    price: 385, // ৳385 per dozen (was $3.50)
-    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400',
-    category: 'Vegetables',
-    farmer: 'রৌদ্রোজ্জ্বল খামার', // Sunny Acres in Bangla
-    rating: 4.8,
-    unit: 'per dozen',
-    location: 'রংপুর',
-    badge: 'Fresh',
-  },
-  {
-    id: '3',
-    name: 'Mixed Leafy Greens',
-    price: 770, // ৳770 per bundle (was $6.99)
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-    category: 'Vegetables',
-    farmer: 'জৈব ফসল কোম্পানি', // Organic Harvest Co. in Bangla
-    rating: 4.6,
-    unit: 'per bundle',
-    location: 'ময়মনসিংহ',
-    badge: 'Organic',
-  },
-  {
-    id: '4',
-    name: 'Farm Fresh Carrots',
-    price: 330, // ৳330 per kg (was $2.99)
-    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400',
-    category: 'Vegetables',
-    farmer: 'ঐতিহ্য খামার', // Heritage Farm in Bangla
-    rating: 4.4,
-    unit: 'per kg',
-    location: 'দিনাজপুর',
-    badge: 'Local',
-  },
-  {
-    id: '5',
-    name: 'Fresh Strawberries',
-    price: 990, // ৳990 per box (was $8.99)
-    image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400',
-    category: 'Fruits',
-    farmer: 'বেরি আনন্দ খামার', // Berry Bliss Farm in Bangla
-    rating: 4.9,
-    unit: 'per box',
-    location: 'চট্টগ্রাম',
-    badge: 'Premium',
-  },
-  {
-    id: '6',
-    name: 'Organic Bell Peppers',
-    price: 605, // ৳605 per kg (was $5.49)
-    image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400',
-    category: 'Vegetables',
-    farmer: 'রঙিন ফসল খামার', // Colorful Harvest in Bangla
-    rating: 4.7,
-    unit: 'per kg',
-    location: 'বরিশাল',
-    badge: 'Organic',
-  },
-  {
-    id: '7',
-    name: 'Fresh Avocados',
-    price: 880, // ৳880 per kg (was $7.99)
-    image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400',
-    category: 'Fruits',
-    farmer: 'ক্রান্তীয় বাগান', // Tropical Grove in Bangla
-    rating: 4.6,
-    unit: 'per kg',
-    location: 'স্যাধেট',
-    badge: 'Fresh',
-  },
-  {
-    id: '8',
-    name: 'Organic Broccoli',
-    price: 495, // ৳495 per kg (was $4.49)
-    image: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=400',
-    category: 'Vegetables',
-    farmer: 'সবুজ ক্ষেত কোম্পানি', // Green Fields Co. in Bangla
-    rating: 4.5,
-    unit: 'per kg',
-    location: 'গাজীপুর',
-    badge: 'Organic',
-  },
-  {
-    id: '9',
-    name: 'Fresh Blueberries',
-    price: 1100, // ৳1100 per box (was $9.99)
-    image: 'https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=400',
-    category: 'Fruits',
-    farmer: 'নীল বেরি পাহাড়', // Blueberry Hill in Bangla
-    rating: 4.8,
-    unit: 'per box',
-    location: 'রানীশংকৈল',
-    badge: 'Premium',
-  },
-  {
-    id: '10',
-    name: 'Organic Spinach',
-    price: 440, // ৳440 per bundle (was $3.99)
-    image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400',
-    category: 'Vegetables',
-    farmer: 'পাতা শাক খামার', // Leafy Greens Farm in Bangla
-    rating: 4.4,
-    unit: 'per bundle',
-    location: 'কুমিল্লা',
-    badge: 'Organic',
-  },
-  {
-    id: '11',
-    name: 'Fresh Pineapples',
-    price: 715, // ৳715 per piece (was $6.49)
-    image: 'https://images.unsplash.com/photo-1550258987-190a62d4fa70?w=400',
-    category: 'Fruits',
-    farmer: 'ক্রান্তীয় স্বর্গ', // Tropical Paradise in Bangla
-    rating: 4.7,
-    unit: 'per piece',
-    location: 'খুলনা',
-    badge: 'Fresh',
-  },
-  {
-    id: '12',
-    name: 'Organic Cucumbers',
-    price: 365, // ৳365 per kg (was $3.29)
-    image: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400',
-    category: 'Vegetables',
-    farmer: 'সতেজ উপত্যকা খামার', // Crisp Valley Farm in Bangla
-    rating: 4.3,
-    unit: 'per kg',
-    location: 'যশোর',
-    badge: 'Organic',
-  },
-];
-
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { logout, user } = useAuth();
   const { language, toggleLanguage, translations } = useLanguage();
   const { addToCart, getCartItemCount } = useCart();
+
+  // Function to refresh products
+  const refreshProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedProducts = await productService.getAllProducts();
+      setProducts(fetchedProducts as Product[]);
+    } catch (err: any) {
+      console.error('Error refreshing products:', err);
+      setError('Failed to refresh products. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch products from Firebase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // First try to get existing products
+        let fetchedProducts = await productService.getAllProducts();
+        
+        // If no products exist, add sample products
+        if (fetchedProducts.length === 0) {
+          console.log('No products found, adding sample products...');
+          await productService.addSampleProducts();
+          fetchedProducts = await productService.getAllProducts();
+        }
+        
+        setProducts(fetchedProducts as Product[]);
+      } catch (err: any) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again.');
+        // Fallback to empty array if fetch fails
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleCategoryPress = (category: Category) => {
     // Navigation is now handled by the CategoryCard component
@@ -221,6 +126,15 @@ export default function HomeScreen() {
     switch (action) {
       case 'View cart':
         router.push('/cart');
+        break;
+      case 'Add new product':
+        router.push('/add-product');
+        break;
+      case 'View orders':
+        router.push('/(tabs)/orders');
+        break;
+      case 'View messages':
+        Alert.alert('Messages', 'Coming Soon!');
         break;
       default:
         Alert.alert('Quick Action', `You selected: ${action}`);
@@ -253,6 +167,47 @@ export default function HomeScreen() {
       onAddToCart={addToCart}
     />
   );
+
+  const renderProductsContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <ThemedText style={styles.loadingText}>{translations.loading}</ThemedText>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#FF6B6B" />
+          <ThemedText style={styles.errorText}>{error}</ThemedText>
+          <TouchableOpacity style={styles.retryButton} onPress={refreshProducts}>
+            <ThemedText style={styles.retryButtonText}>{translations.tryAgain}</ThemedText>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (products.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="basket-outline" size={48} color="#999" />
+          <ThemedText style={styles.emptyText}>{translations.noProductsFound}</ThemedText>
+          <TouchableOpacity style={styles.retryButton} onPress={refreshProducts}>
+            <ThemedText style={styles.retryButtonText}>{translations.tryAgain}</ThemedText>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.productsGrid}>
+        {products.map(renderProductItem)}
+      </View>
+    );
+  };
 
   const renderQuickAction = (icon: keyof typeof Ionicons.glyphMap, title: string, action: string) => (
     <TouchableOpacity
@@ -323,6 +278,47 @@ export default function HomeScreen() {
           <ThemedText style={styles.debugText}>
             UID: {user?.uid || 'None'}
           </ThemedText>
+          <ThemedText style={styles.debugText}>
+            Products in DB: {products.length}
+          </ThemedText>
+          <ThemedText style={styles.debugText}>
+            Loading: {loading ? 'Yes' : 'No'}
+          </ThemedText>
+          <ThemedText style={styles.debugText}>
+            Error: {error || 'None'}
+          </ThemedText>
+          {products.length === 0 && !loading && (
+            <TouchableOpacity 
+              style={styles.seedButton} 
+              onPress={async () => {
+                try {
+                  setLoading(true);
+                  setError(null);
+                  console.log('Starting to add sample products...');
+                  await productService.addSampleProducts();
+                  console.log('Sample products added, fetching...');
+                  const fetchedProducts = await productService.getAllProducts();
+                  console.log('Fetched products:', fetchedProducts.length);
+                  setProducts(fetchedProducts as Product[]);
+                  Alert.alert('Success', `${fetchedProducts.length} sample products added to database!`);
+                } catch (error: any) {
+                  console.error('Error adding sample products:', error);
+                  setError(error.message);
+                  Alert.alert('Error', `Failed to add sample products: ${error.message}`);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              <ThemedText style={styles.seedButtonText}>Add Sample Products</ThemedText>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity 
+            style={[styles.seedButton, { backgroundColor: '#4CAF50', marginTop: 4 }]} 
+            onPress={refreshProducts}
+          >
+            <ThemedText style={styles.seedButtonText}>Refresh Products</ThemedText>
+          </TouchableOpacity>
         </View>
 
         {/* Welcome Message */}
@@ -383,9 +379,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.viewAllText}>{translations.viewAllProducts}</ThemedText>
             </TouchableOpacity>
           </View>
-          <View style={styles.productsGrid}>
-            {mockProducts.map(renderProductItem)}
-          </View>
+          {renderProductsContent()}
         </View>
 
         {/* Recent Orders */}
@@ -478,10 +472,16 @@ export default function HomeScreen() {
             <View style={styles.footerLinkSection}>
               <ThemedText style={styles.footerColumnTitle}>For Farmers</ThemedText>
               <View style={styles.footerLinksRow}>
-                <TouchableOpacity style={styles.footerLinkItem}>
+                <TouchableOpacity 
+                  style={styles.footerLinkItem}
+                  onPress={() => router.push('/add-product')}
+                >
                   <ThemedText style={styles.footerLink}>Sell Your Products</ThemedText>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.footerLinkItem}>
+                <TouchableOpacity 
+                  style={styles.footerLinkItem}
+                  onPress={() => router.push('/farmer-dashboard')}
+                >
                   <ThemedText style={styles.footerLink}>Farmer Dashboard</ThemedText>
                 </TouchableOpacity>
               </View>
@@ -695,25 +695,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-  cartBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#F44336',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  cartBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-  },
   productsContainer: {
     marginLeft: -20,
     paddingLeft: 20,
@@ -898,5 +879,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginBottom: 4,
+  },
+  seedButton: {
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  seedButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    marginTop: 16,
+    marginBottom: 20,
+    fontSize: 16,
+    color: '#FF6B6B',
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    marginTop: 16,
+    marginBottom: 20,
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dimensions,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,234 +19,18 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { Product } from '@/types';
+import { productService } from '@/services/firebase';
 
 const { width } = Dimensions.get('window');
-
-// Same mock products from the home screen with Taka prices
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Fresh Organic Tomatoes',
-    price: 550,
-    image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400',
-    category: 'Vegetables',
-    farmer: 'সবুজ উপত্যকা খামার',
-    rating: 4.5,
-    unit: 'per kg',
-    location: 'সিলেট',
-    badge: 'Organic',
-  },
-  {
-    id: '2',
-    name: 'Sweet Corn',
-    price: 385,
-    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400',
-    category: 'Vegetables',
-    farmer: 'রৌদ্রোজ্জ্বল খামার',
-    rating: 4.8,
-    unit: 'per dozen',
-    location: 'রংপুর',
-    badge: 'Fresh',
-  },
-  {
-    id: '3',
-    name: 'Mixed Leafy Greens',
-    price: 770,
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-    category: 'Vegetables',
-    farmer: 'জৈব ফসল কোম্পানি',
-    rating: 4.6,
-    unit: 'per bundle',
-    location: 'ময়মনসিংহ',
-    badge: 'Organic',
-  },
-  {
-    id: '4',
-    name: 'Farm Fresh Carrots',
-    price: 330,
-    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400',
-    category: 'Vegetables',
-    farmer: 'ঐতিহ্য খামার',
-    rating: 4.4,
-    unit: 'per kg',
-    location: 'দিনাজপুর',
-    badge: 'Local',
-  },
-  {
-    id: '5',
-    name: 'Fresh Strawberries',
-    price: 990,
-    image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400',
-    category: 'Fruits',
-    farmer: 'বেরি আনন্দ খামার',
-    rating: 4.9,
-    unit: 'per box',
-    location: 'চট্টগ্রাম',
-    badge: 'Premium',
-  },
-  {
-    id: '6',
-    name: 'Organic Bell Peppers',
-    price: 605,
-    image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400',
-    category: 'Vegetables',
-    farmer: 'রঙিন ফসল খামার',
-    rating: 4.7,
-    unit: 'per kg',
-    location: 'বরিশাল',
-    badge: 'Organic',
-  },
-  {
-    id: '7',
-    name: 'Fresh Avocados',
-    price: 880,
-    image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400',
-    category: 'Fruits',
-    farmer: 'ক্রান্তীয় বাগান',
-    rating: 4.6,
-    unit: 'per kg',
-    location: 'স্যাধেট',
-    badge: 'Fresh',
-  },
-  {
-    id: '8',
-    name: 'Organic Broccoli',
-    price: 495,
-    image: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=400',
-    category: 'Vegetables',
-    farmer: 'সবুজ ক্ষেত কোম্পানি',
-    rating: 4.5,
-    unit: 'per kg',
-    location: 'গাজীপুর',
-    badge: 'Organic',
-  },
-  {
-    id: '9',
-    name: 'Fresh Blueberries',
-    price: 1100,
-    image: 'https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=400',
-    category: 'Fruits',
-    farmer: 'নীল বেরি পাহাড়',
-    rating: 4.8,
-    unit: 'per box',
-    location: 'রানীশংকৈল',
-    badge: 'Premium',
-  },
-  {
-    id: '10',
-    name: 'Organic Spinach',
-    price: 440,
-    image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400',
-    category: 'Vegetables',
-    farmer: 'পাতা শাক খামার',
-    rating: 4.4,
-    unit: 'per bundle',
-    location: 'কুমিল্লা',
-    badge: 'Organic',
-  },
-  {
-    id: '11',
-    name: 'Fresh Pineapples',
-    price: 715,
-    image: 'https://images.unsplash.com/photo-1550258987-190a62d4fa70?w=400',
-    category: 'Fruits',
-    farmer: 'ক্রান্তীয় স্বর্গ',
-    rating: 4.7,
-    unit: 'per piece',
-    location: 'খুলনা',
-    badge: 'Fresh',
-  },
-  {
-    id: '12',
-    name: 'Organic Cucumbers',
-    price: 365,
-    image: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400',
-    category: 'Vegetables',
-    farmer: 'সতেজ উপত্যকা খামার',
-    rating: 4.3,
-    unit: 'per kg',
-    location: 'যশোর',
-    badge: 'Organic',
-  },
-  {
-    id: '13',
-    name: 'Quinoa',
-    price: 1430, // ৳1430 per kg (was $12.99)
-    image: 'https://images.unsplash.com/photo-1586201375761-83865001e8c3?w=400',
-    category: 'Grains',
-    farmer: 'Ancient Grains Co.',
-    rating: 4.6,
-    unit: 'per kg',
-    location: 'Peru',
-    badge: 'Organic',
-  },
-  {
-    id: '14',
-    name: 'Brown Rice',
-    price: 935, // ৳935 per kg (was $8.49)
-    image: 'https://images.unsplash.com/photo-1586201375761-83865001e8c3?w=400',
-    category: 'Grains',
-    farmer: 'Rice Fields Farm',
-    rating: 4.4,
-    unit: 'per kg',
-    location: 'Arkansas',
-    badge: 'Organic',
-  },
-  {
-    id: '15',
-    name: 'Fresh Basil',
-    price: 330, // ৳330 per bunch (was $2.99)
-    image: 'https://images.unsplash.com/photo-1618164435735-413d3b066c9a?w=400',
-    category: 'Herbs',
-    farmer: 'Herb Garden Co.',
-    rating: 4.7,
-    unit: 'per bunch',
-    location: 'Mediterranean',
-    badge: 'Fresh',
-  },
-  {
-    id: '16',
-    name: 'Organic Rosemary',
-    price: 385, // ৳385 per bunch (was $3.49)
-    image: 'https://images.unsplash.com/photo-1618164435735-413d3b066c9a?w=400',
-    category: 'Herbs',
-    farmer: 'Aromatic Gardens',
-    rating: 4.5,
-    unit: 'per bunch',
-    location: 'California',
-    badge: 'Organic',
-  },
-  {
-    id: '17',
-    name: 'Fresh Milk',
-    price: 660, // ৳660 per liter (was $5.99)
-    image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400',
-    category: 'Dairy',
-    farmer: 'Happy Cow Dairy',
-    rating: 4.8,
-    unit: 'per liter',
-    location: 'Wisconsin',
-    badge: 'Fresh',
-  },
-  {
-    id: '18',
-    name: 'Organic Cheese',
-    price: 1100, // ৳1100 per 250g (was $9.99)
-    image: 'https://images.unsplash.com/photo-1552767059-ce182ead6c1b?w=400',
-    category: 'Dairy',
-    farmer: 'Artisan Cheese Co.',
-    rating: 4.9,
-    unit: 'per 250g',
-    location: 'Vermont',
-    badge: 'Organic',
-  },
-];
 
 export default function CategoryPage() {
   const params = useLocalSearchParams();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { translations, language, getProductName } = useLanguage();
   const { addToCart } = useCart();
 
@@ -253,18 +38,50 @@ export default function CategoryPage() {
   const categoryName = typeof params.name === 'string' ? 
     decodeURIComponent(params.name) : 'Category';
 
-  // Filter products by category
-  const categoryProducts = mockProducts.filter(product => 
-    product.category.toLowerCase() === categoryName.toLowerCase()
-  );
+  // Fetch products by category
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch products from Firebase
+        const fetchedProducts = await productService.getProductsByCategory(categoryName);
+        setProducts(fetchedProducts as Product[]);
+      } catch (err: any) {
+        console.error('Error fetching category products:', err);
+        setError('Failed to load products. Please try again.');
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Further filter by search query if any
+    fetchCategoryProducts();
+  }, [categoryName]);
+
+  // Function to refresh products
+  const refreshProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedProducts = await productService.getProductsByCategory(categoryName);
+      setProducts(fetchedProducts as Product[]);
+    } catch (err: any) {
+      console.error('Error refreshing products:', err);
+      setError('Failed to refresh products. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter products by search query if any
   const filteredProducts = searchQuery 
-    ? categoryProducts.filter(product =>
+    ? products.filter(product =>
         getProductName(product.name).toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.farmer.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : categoryProducts;
+    : products;
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -301,6 +118,50 @@ export default function CategoryPage() {
       onAddToCart={addToCart}
     />
   );
+
+  const renderProductsContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <ThemedText style={styles.loadingText}>{translations.loading}</ThemedText>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#FF6B6B" />
+          <ThemedText style={styles.errorText}>{error}</ThemedText>
+          <TouchableOpacity style={styles.retryButton} onPress={refreshProducts}>
+            <ThemedText style={styles.retryButtonText}>{translations.tryAgain}</ThemedText>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (filteredProducts.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Ionicons name="basket-outline" size={64} color="#ccc" />
+          <ThemedText style={styles.emptyStateTitle}>{translations.noProductsFound}</ThemedText>
+          <ThemedText style={styles.emptyStateDescription}>
+            {searchQuery 
+              ? `${language === 'en' ? 'No products match' : 'কোন পণ্য মিলছে না'} "${searchQuery}" ${language === 'en' ? 'in' : 'এ'} ${categoryName}`
+              : `${language === 'en' ? 'No products available in' : 'কোন পণ্য নেই'} ${categoryName} ${language === 'en' ? 'category' : 'শ্রেণীতে'}`
+            }
+          </ThemedText>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.productsGrid}>
+        {filteredProducts.map(renderProductItem)}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#F8F9FA' }]}>
@@ -345,22 +206,7 @@ export default function CategoryPage() {
 
       {/* Products Grid */}
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
-        {filteredProducts.length > 0 ? (
-          <View style={styles.productsGrid}>
-            {filteredProducts.map(renderProductItem)}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="basket-outline" size={64} color="#ccc" />
-            <ThemedText style={styles.emptyStateTitle}>{translations.noProductsFound}</ThemedText>
-            <ThemedText style={styles.emptyStateDescription}>
-              {searchQuery 
-                ? `${language === 'en' ? 'No products match' : 'কোন পণ্য মিলছে না'} "${searchQuery}" ${language === 'en' ? 'in' : 'এ'} ${categoryName}`
-                : `${language === 'en' ? 'No products available in' : 'কোন পণ্য নেই'} ${categoryName} ${language === 'en' ? 'category' : 'শ্রেণীতে'}`
-              }
-            </ThemedText>
-          </View>
-        )}
+        {renderProductsContent()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -455,5 +301,40 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  errorText: {
+    marginTop: 16,
+    marginBottom: 20,
+    fontSize: 16,
+    color: '#FF6B6B',
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
